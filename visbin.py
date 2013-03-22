@@ -6,8 +6,11 @@ import Image, numpy
 
 infile = sys.argv[1]
 outfile = sys.argv[2]
-width = int(sys.argv[3])
-bytelist = []
+try:
+    width = int(sys.argv[3])
+except IndexError:
+    width = 128
+vect = []
 
 def array2image(a):
     im = Image.Image()
@@ -16,15 +19,27 @@ def array2image(a):
 
 fi = open(infile, 'rb')
 print "Reading file..."
-for abyte in fi.read():
-    bytelist += struct.unpack('B', abyte)
+
+count = 0
+while True:
+    piece = fi.read(width)
+    if piece == "":
+        break
+    widthlist = []
+    for abyte in piece:
+        widthlist += struct.unpack('B', abyte)
+    if count%2 !=0:
+        widthlist.reverse()
+    if len(widthlist) < width:
+        for i in range(width-len(widthlist)):
+            widthlist+=[0]                           
+    vect.append(widthlist)
+    
 fi.close()
+
 print "File reading done."
-n = width
-print "Performing dark magic.."
-vect = [bytelist[i:i+n] for i in range(len(bytelist)-n+1)]
 print "Generating image..."
 imeji = array2image(vect)
 imeji.save(outfile)
-print "Image generated."
+print "Image generated. Written to ",outfile
 
